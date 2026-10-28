@@ -1,0 +1,25 @@
+include:
+  - local: templates/release-workflow.yml
+
+stages:
+  - test
+  - release
+
+default:
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/node:20
+  before_script:
+    - npm config set -- //${CI_SERVER_HOST}/api/v4/groups/1234/-/packages/npm/:_authToken=${ENGINEERING_DEV_TOOLS_INTERNAL_DEPLOY_PASSWORD}
+    - npm config set @engineering:registry=https://${CI_SERVER_HOST}/api/v4/groups/1234/-/packages/npm/
+    - npm install
+
+lint:
+  stage: test
+  script:
+    - npm run lint
+
+release:
+  stage: release
+  extends:
+    - .release-rules
+  script:
+    - npx semantic-release
